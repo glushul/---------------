@@ -103,7 +103,8 @@ class FieldOfStudy(models.Model):
     def __str__(self):
         return self.name
 
-class VacancyInfo(models.Model):
+class Vacancy(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='vacancies')
     title = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(null=False)
 
@@ -129,13 +130,6 @@ class VacancyInfo(models.Model):
     response_type = models.CharField(max_length=20, choices=RESPONSE_TYPE_CHOICES, null=False, blank=False)
     response_destination = models.CharField(max_length=255, blank=True, help_text="Email или URL при не-internal типе")
 
-    def __str__(self):
-        return self.title
-
-
-class Vacancy(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='vacancies')
-    info = models.ForeignKey(VacancyInfo, on_delete=models.CASCADE, related_name='vacancies')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_vacancies')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

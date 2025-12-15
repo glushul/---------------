@@ -3,14 +3,8 @@ from django.contrib.auth.password_validation import validate_password
 from . import models
 
 class VacancyForm(forms.ModelForm): 
-    # is_active = forms.BooleanField(
-    #     label="Активна",
-    #     required=False,
-    #     widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    # )
-
     class Meta:
-        model = models.VacancyInfo
+        model = models.Vacancy
         fields = ['title', 'description', 'field', 'requirements', 'responsibilities', 'conditions',
             'salary_min', 'salary_max', 'city', 'address',
             'employment_type', 'schedule', 'is_active']

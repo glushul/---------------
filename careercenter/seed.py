@@ -14,7 +14,7 @@ django.setup()
 
 # Только ПОСЛЕ этого можно импортировать модели!
 from main.models import (
-    User, Company, FieldOfStudy, Vacancy, VacancyInfo,
+    User, Company, FieldOfStudy, Vacancy,
     Event, Application
 )
 from faker import Faker
@@ -27,7 +27,6 @@ def seed_data():
     with transaction.atomic():
         print("🗑️ Удаление старых данных...")
         Application.objects.all().delete()
-        VacancyInfo.objects.all().delete()
         Vacancy.objects.all().delete()
         Event.objects.all().delete()
         Company.objects.all().delete()
@@ -45,7 +44,6 @@ def seed_data():
             users.append(user)
 
         partner = User.objects.create(email='hr@company.ru', full_name='HR Партнёр', role='partner')
-        admin = User.objects.create(email='admin@polytech.ru', full_name='Админ Центра', role='admin')
 
         print("📚 Создание направлений подготовки...")
         field_names = ['Информационные технологии', 'Экономика', 'Машиностроение', 'Управление', 'Дизайн', 'Робототехника']
@@ -66,7 +64,8 @@ def seed_data():
         print(" vacancy Создание вакансий...")
         vacancies = []
         for _ in range(10):
-            vacancy_info = VacancyInfo.objects.create(
+            vacancy = Vacancy.objects.create(
+                company=choice(companies),
                 title=fake.job(),
                 description=fake.text(),
                 field=choice(fields),
@@ -81,11 +80,7 @@ def seed_data():
                 conditions='<p>Офис в центре, ДМС, гибкий график</p>',
                 city='Москва',
                 address=fake.address(),
-                response_type='internal'
-            )
-            vacancy = Vacancy.objects.create(
-                company=choice(companies),
-                info=vacancy_info,
+                response_type='internal',
                 is_active=True,
                 created_by=partner
             )

@@ -1,7 +1,7 @@
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import ObjectDoesNotExist
-from . import models, forms, serializers, pagination
+from . import models, forms, serializers, pagination, filters
 from rest_framework import viewsets
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -13,22 +13,23 @@ class VacancyViewSet(viewsets.ModelViewSet):
     queryset = models.Vacancy.objects.all()
     serializer_class = serializers.VacancySerializer
     pagination_class = pagination.StandardResultsSetPagination
+    filterset_class = filters.VacancyFilter 
 
 def main(request):
     return redirect("vacancies")
     
 def get_vacancies(request):
-    vacancies = models.Vacancy.objects.filter(info__is_active=True).select_related('info', 'company')
+    vacancies = models.Vacancy.objects.filter(is_active=True).select_related('company')
 
     query_position = request.GET.get("position")
     if query_position:
-        vacancies = vacancies.filter(info__title__icontains = query_position)
+        vacancies = vacancies.filter(title__icontains = query_position)
 
     query_specialization = request.GET.get("specialization")
     if query_specialization and query_specialization != "-1":
         try:
             field = models.FieldOfStudy.objects.get(id=query_specialization)
-            vacancies = vacancies.filter(info__field=field)
+            vacancies = vacancies.filter(field=field)
         except ObjectDoesNotExist:
             return HttpResponseBadRequest("Invalid specialization")
         
@@ -38,7 +39,7 @@ def get_vacancies(request):
         if query_employment_type not in valid_values:
             return HttpResponseBadRequest("Invalid employment type")
         else:
-            vacancies = vacancies.filter(info__employment_type=query_employment_type)
+            vacancies = vacancies.filter(employment_type=query_employment_type)
 
     query_experience = request.GET.get("experience")
     if query_experience and query_experience != "-1":
@@ -46,28 +47,28 @@ def get_vacancies(request):
         if query_experience not in valid_values:
             return HttpResponseBadRequest("Invalid experience choice")
         else: 
-            vacancies = vacancies.filter(info__experience=query_experience)
+            vacancies = vacancies.filter(experience=query_experience)
 
     data = []
     for v in vacancies:
         data.append({
             "id": v.id,
-            "title": v.info.title if v.info else "Без названия",
-            "description": v.info.description if v.info else "",
+            "title": v.title,
+            "description": v.description,
             "company": {
                 "name": v.company.name,
                 "description": v.company.description,
                 "industry": v.company.description,
                 "logo": v.company.logo
             },
-            "salary_min": v.info.salary_min,
-            "salary_max": v.info.salary_max,
-            "experience": v.info.experience,
-            "education_level": v.info.education_level,
-            "employment_type": v.info.employment_type,
-            "schedule": v.info.schedule,
-            "city": v.info.city,
-            "address": v.info.address,
+            "salary_min": v.salary_min,
+            "salary_max": v.salary_max,
+            "experience": v.experience,
+            "education_level": v.education_level,
+            "employment_type": v.employment_type,
+            "schedule": v.schedule,
+            "city": v.city,
+            "address": v.address,
             "created_at": v.created_at.isoformat() if v.created_at else None,
         })
 
@@ -83,31 +84,31 @@ def get_vacancies(request):
     return render(request, "vacancies.html", context)
 
 def get_vacancy(request, id):
-    v = models.Vacancy.objects.filter(id=id).select_related('info', 'company').first()
+    v = models.Vacancy.objects.filter(id=id).select_related('company').first()
 
     if v is None:
         return HttpResponseBadRequest("Invalid company ID")
 
     context = {
         "id": v.id,
-        "is_active": v.info.is_active,
-        "title": v.info.title if v.info else "Без названия",
-        "description": v.info.description if v.info else "",
+        "is_active": v.is_active,
+        "title": v.title,
+        "description": v.description,
         "company": {
             "name": v.company.name,
             "description": v.company.description,
             "industry": v.company.description,
             "logo": v.company.logo
         },
-        "salary_min": v.info.salary_min,
-        "salary_max": v.info.salary_max,
-        "city": v.info.city,
-        "address": v.info.address,
-        "employment_type": v.info.employment_type,
-        "schedule": v.info.schedule,
-        "requirements": v.info.requirements,
-        "responsibilities": v.info.responsibilities,
-        "conditions": v.info.conditions,
+        "salary_min": v.salary_min,
+        "salary_max": v.salary_max,
+        "city": v.city,
+        "address": v.address,
+        "employment_type": v.employment_type,
+        "schedule": v.schedule,
+        "requirements": v.requirements,
+        "responsibilities": v.responsibilities,
+        "conditions": v.conditions,
         "created_at": v.created_at if v.created_at else None
     }
 
@@ -118,12 +119,7 @@ def edit_vacancy(request, id):
         if request.method == "POST":
             form = forms.VacancyForm(request.POST)
             if form.is_valid():
-                vacancy_info = form.save()
-                vacancy = models.Vacancy.objects.create(
-                    info=vacancy_info,
-                    company=request.user.company,
-                    irs_active=form.cleaned_data.get('is_active', True)
-                )
+                vacancy = form.save()
                 return redirect("get_vacancy", id=vacancy.id)
             else:
                 return render(request, "edit_vacancy.html", {"form": form, "is_new": True})
@@ -137,20 +133,14 @@ def edit_vacancy(request, id):
         v = get_object_or_404(models.Vacancy, id=id)
         
         if request.method == "POST":
-            form = forms.VacancyForm(request.POST, instance=v.info)
+            form = forms.VacancyForm(request.POST, instance=v)
             if form.is_valid():
                 form.save()
-                v.is_active = form.cleaned_data.get('is_active', v.is_active)
-                v.save()
                 return redirect("get_vacancy", id=v.id)
             else:
                 return render(request, "edit_vacancy.html", {"form": form, "v": v})
         else:
-            if not hasattr(v, 'info') or v.info is None:
-                vacancy_info = models.VacancyInfo.objects.create()
-                v.info = vacancy_info
-                v.save()
-            form = forms.VacancyForm(instance=v.info)
+            form = forms.VacancyForm(instance=v)
             return render(request, "edit_vacancy.html", {"form": form, "v": v})
         
 def get_companies(request):
