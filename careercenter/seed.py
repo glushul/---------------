@@ -14,8 +14,7 @@ django.setup()
 
 # Только ПОСЛЕ этого можно импортировать модели!
 from main.models import (
-    User, Company, FieldOfStudy, Vacancy,
-    Event, Application
+    User, Company, FieldOfStudy, Vacancy
 )
 from faker import Faker
 from random import choice, sample
@@ -26,9 +25,7 @@ def seed_data():
     from django.db import transaction
     with transaction.atomic():
         print("🗑️ Удаление старых данных...")
-        Application.objects.all().delete()
         Vacancy.objects.all().delete()
-        Event.objects.all().delete()
         Company.objects.all().delete()
         FieldOfStudy.objects.all().delete()
         User.objects.all().delete()
@@ -56,8 +53,7 @@ def seed_data():
             company = Company.objects.create(
                 name=name,
                 description=fake.text(max_nb_chars=200),
-                industry=fake.word(),
-                logo="https://proxys.io/files/blog/avito_logo.png"
+                industry=fake.word()
             )
             companies.append(company)
 
@@ -72,7 +68,6 @@ def seed_data():
                 salary_min=choice([0, 60000, 80000, 100000]),
                 salary_max=choice([120000, 150000, 200000]),
                 experience=choice(['no', '1-3', '3-5']),
-                education_level=choice(['bachelor', 'master', 'student']),
                 employment_type=choice(['full', 'internship', 'project']),
                 schedule=choice(['office', 'remote', 'hybrid']),
                 requirements='<p>Знание Python и Django</p>',
@@ -80,32 +75,9 @@ def seed_data():
                 conditions='<p>Офис в центре, ДМС, гибкий график</p>',
                 city='Москва',
                 address=fake.address(),
-                response_type='internal',
-                is_active=True,
-                created_by=partner
+                is_active=True
             )
             vacancies.append(vacancy)
-
-        print("📅 Создание мероприятий...")
-        for _ in range(3):
-            Event.objects.create(
-                title=fake.sentence(nb_words=3),
-                description=fake.text(),
-                event_date=fake.future_datetime(end_date="+30d"),
-                location='Москва, Стромынка, 26',
-                cover_image_url="https://via.placeholder.com/600x300"
-            )
-
-        print("📩 Создание откликов...")
-        for user in users:
-            applied_vacancies = sample(vacancies, k=choice([1, 2]))
-            for vac in applied_vacancies:
-                Application.objects.create(
-                    user=user,
-                    vacancy=vac,
-                    resume_file_url="https://example.com/resume.pdf",
-                    status=choice(['pending', 'reviewed', 'invited'])
-                )
 
     print("✅ Фейковые данные успешно загружены!")
 

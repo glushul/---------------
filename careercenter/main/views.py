@@ -53,7 +53,6 @@ def get_vacancies(request):
             "salary_min": v.salary_min,
             "salary_max": v.salary_max,
             "experience": v.experience,
-            "education_level": v.education_level,
             "employment_type": v.employment_type,
             "schedule": v.schedule,
             "city": v.city,
@@ -141,25 +140,16 @@ def edit_company(request, id):
     if id != "new":
         company = get_object_or_404(models.Company, id=id)
 
-    user = models.User.objects.filter(company=company).first()
-
     if request.method == "POST":
-        company_form = forms.CompanyForm(request.POST, request.FILES, instance=company)
-        user_form = forms.UserCreationForm(request.POST)
+        company_form = forms.CompanyForm(request.POST, request.FILES, instance=company)\
 
         if company_form.is_valid():
             company = company_form.save()
-            if user_form.is_valid():
-                user = user_form.save(commit=False, company=company)
-                user.role =  "partner"
-                user.save()
             return redirect("companies")
     else:
         company_form = forms.CompanyForm(instance=company)
-        user_form = forms.UserCreationForm(instance=user)
 
     return render(request, "edit_company.html", {
-        "company_form": company_form,
-        "user_form": user_form,
+        "form": company_form,
         "company": company
     })

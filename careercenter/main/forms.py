@@ -33,25 +33,3 @@ class CompanyForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control'}),
             'industry': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
-class UserCreationForm(forms.ModelForm):
-    password = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
-        validators=[validate_password]
-    )
-
-    class Meta:
-        model = models.User
-        fields = ['email']
-        widgets = {
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
-
-    def save(self, commit=True, company=None):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])  # ← "password", не "password1"
-        if company:
-            user.company = company
-        if commit:
-            user.save()
-        return user
