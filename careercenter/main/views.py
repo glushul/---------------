@@ -1,16 +1,18 @@
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.exceptions import ObjectDoesNotExist
-from . import models, forms, serializers
+from . import models, forms, serializers, pagination
 from rest_framework import viewsets
 
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = models.Company.objects.all()
     serializer_class = serializers.CompanySerializer
+    pagination_class = pagination.StandardResultsSetPagination
 
 class VacancyViewSet(viewsets.ModelViewSet):
     queryset = models.Vacancy.objects.all()
     serializer_class = serializers.VacancySerializer
+    pagination_class = pagination.StandardResultsSetPagination
 
 def main(request):
     return redirect("vacancies")
