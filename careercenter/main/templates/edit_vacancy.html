@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <div class="bg-white rounded-3 shadow-sm border p-4 p-md-5">
+        <h1 class="h3 fw-bold mb-4">
+          {% if v.id %}Редактирование вакансии{% else %}Создание вакансии{% endif %}
+        </h1>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              Название:
+              {{ form.title }}
+              {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              Город:
+              {{ form.city }}
+              {% if form.city.errors %}<div class="text-danger small">{{ form.city.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            Адрес:
+            {{ form.address }}
+            {% if form.address.errors %}<div class="text-danger small">{{ form.address.errors }}</div>{% endif %}
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              Тип трудоустройства:
+              {{ form.employment_type }}
+              {% if form.employment_type.errors %}<div class="text-danger small">{{ form.employment_type.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              График:
+              {{ form.schedule }}
+              {% if form.schedule.errors %}<div class="text-danger small">{{ form.schedule.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              Специализация:
+              {{ form.field }}
+              {% if form.field.errors %}<div class="text-danger small">{{ form.field.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-md-6">
+              Мин. зарплата
+              {{ form.salary_min }}
+              {% if form.salary_min.errors %}<div class="text-danger small">{{ form.salary_min.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              Макс. зарплата
+              {{ form.salary_max }}
+              {% if form.salary_max.errors %}<div class="text-danger small">{{ form.salary_max.errors }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            Описание:
+            {{ form.description }}
+            {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+          </div>
+
+          <div class="mb-4">
+            Требования:
+            {{ form.requirements }}
+            {% if form.requirements.errors %}<div class="text-danger small">{{ form.requirements.errors }}</div>{% endif %}
+            <small class="form-text text-muted">Поддерживается HTML-разметка</small>
+          </div>
+
+          <div class="mb-4">
+            Обязательства:
+            {{ form.responsibilities }}
+            {% if form.responsibilities.errors %}<div class="text-danger small">{{ form.responsibilities.errors }}</div>{% endif %}
+            <small class="form-text text-muted">HTML-разметка разрешена</small>
+          </div>
+
+          <div class="mb-4">
+            Условия:
+            {{ form.conditions }}
+            {% if form.conditions.errors %}<div class="text-danger small">{{ form.conditions.errors }}</div>{% endif %}
+            <small class="form-text text-muted">HTML-разметка разрешена</small>
+          </div>
+
+          <div class="mb-4 form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+              Активна
+            </label>
+            {% if form.is_active.errors %}
+              <div class="text-danger small">{{ form.is_active.errors }}</div>
+            {% endif %}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary px-4">
+              {% if v.id %}Сохранить{% else %}Создать{% endif %}
+            </button>
+            <a href="/vacancies/{{v.id}}" class="btn btn-outline-secondary">Отмена</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

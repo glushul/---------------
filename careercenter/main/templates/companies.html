@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="bg-light rounded-3 shadow-sm p-4 p-md-5">
+    <h1 class="h4 fw-bold mb-4">Компании</h1>
+
+    {% if companies %}
+      <div class="row g-4">
+        {% for company in companies %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0">
+              <img src="{% if company.logo %} {{company.logo.url}} {% else %} /media/logos/not_found.png {% endif %}" class="card-img-top mx-auto mt-3" style="height: 60px; width: auto; object-fit: contain;" alt="{{ company.name }} логотип">
+              <div class="card-body d-flex flex-column">
+                <h6 class="card-title fw-bold">{{ company.name }}</h6>
+                <p class="card-text text-muted small">{{ company.industry }}</p>
+                <p class="card-text">{{ company.description }}</p>
+                <div class="mt-auto">
+                  <a href="companies/{{ company.id }}/edit" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil"></i> Редактировать
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">Нет компаний для отображения.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

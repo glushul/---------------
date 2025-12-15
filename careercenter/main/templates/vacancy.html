@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      <article class="bg-white rounded-3 shadow-sm border p-4 p-md-5">
+                <header class="mb-5">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-start gap-3">
+            <div>
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h1 class="h2 fw-bold me-3">{{ v.title }}</h1>
+                <a href="{{v.id}}/edit" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-pencil"></i> Редактировать
+                </a>
+              </div>
+              <div class="d-flex align-items-center gap-3 mt-2">
+                <img src="
+                {% if v.company.logo %} 
+                {{ v.company.logo.url }} 
+                {% else %} 
+                /media/logos/not_found.png 
+                {% endif %} " 
+                alt="{{ v.company.name }} logo"
+                  class="rounded" style="height: 48px; width: auto; object-fit: contain;">
+                <div>
+                  <div class="h5 mb-0 fw-semibold">{{ v.company.name }}</div>
+                  {% if v.company.industry %}
+                    <div class="text-muted small">{{ v.company.industry }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Бейдж занятости -->
+            {% if v.employment_type %}
+              <span class="badge {% if v.employment_type == 'full' %}bg-success
+                            {% elif v.employment_type == 'internship' %}bg-info
+                            {% elif v.employment_type == 'part' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                {% if v.employment_type == 'full' %}Полная
+                  {% elif v.employment_type == 'internship' %}Стажировка
+                  {% elif v.employment_type == 'part' %}Частичная
+                  {% else %}Проект{% endif %}
+              </span>
+            {% endif %}
+          </div>
+        </header>
+      
+
+        <div class="d-flex flex-wrap gap-3 mb-5 p-3 bg-light bg-opacity-25 rounded-2">
+          {% if v.salary_min or v.salary_max %}
+            <div>
+              <div class="text-muted small">Зарплата</div>
+              <div class="fw-medium">
+                {% if v.salary_min and v.salary_max %}
+                  от {{ v.salary_min }} до {{ v.salary_max }} ₽
+                {% elif v.salary_min %}
+                  от {{ v.salary_min }} ₽
+                {% elif v.salary_max %}
+                  до {{ v.salary_max }} ₽
+                {% else %}
+                  не указана
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if v.schedule %}
+            <div>
+              <div class="text-muted small">График</div>
+              <div class="fw-medium">🕘 
+                  {% if vac.schedule == 'remote' %}Удалёнка
+                  {% elif vac.schedule == 'office' %}Офис
+                  {% elif vac.schedule == 'hybrid' %}Гибрид
+                  {% else %}По договорённости{% endif %}</div>
+            </div>
+          {% endif %}
+          
+          {% if v.city or v.address %}
+            <div>
+              <div class="text-muted small">Местоположение</div>
+              <div class="fw-medium">
+                {% if v.city %}{{ v.city }}{% endif %}
+                {% if v.address %}<br><small>📍 {{ v.address }}</small>{% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if v.description %}
+          <section class="mb-5">
+            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom">Описание вакансии</h2>
+            <div class="text-body">{{ v.description|linebreaksbr }}</div>
+          </section>
+        {% endif %}
+
+        {% if v.requirements %}
+          <section class="mb-5">
+            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom">Требования</h2>
+            <div class="text-body">{{ v.requirements|safe }}</div>
+          </section>
+        {% endif %}
+
+        {% if v.responsibilities %}
+          <section class="mb-5">
+            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom">Обязанности</h2>
+            <div class="text-body">{{ v.responsibilities|safe }}</div>
+          </section>
+        {% endif %}
+
+        {% if v.conditions %}
+          <section class="mb-5">
+            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom">Условия</h2>
+            <div class="text-body">{{ v.conditions|safe }}</div>
+          </section>
+        {% endif %}
+
+        {% if v.company.description %}
+          <section class="mb-5">
+            <h2 class="h5 fw-bold mb-3 pb-2 border-bottom">О компании</h2>
+            <div class="text-body">{{ v.company.description|linebreaksbr }}</div>
+          </section>
+        {% endif %}
+
+        {% if v.created_at %}
+          <footer class="text-muted small mt-4 pt-3 border-top">
+            Опубликовано: {{ v.created_at|date:"d.m.Y в H:i" }}
+            {% if not v.is_active %}
+              <span class="badge bg-warning text-dark ms-2">Неактивна</span>
+            {% endif %}
+          </footer>
+        {% endif %}
+      </article>
+
+      <div class="text-center mt-4">
+        <a href="/vacancies" class="btn btn-outline-primary px-4">← К списку вакансий</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
