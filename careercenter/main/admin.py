@@ -80,7 +80,6 @@ class VacancyAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     raw_id_fields = ['company', 'field']
     readonly_fields = ['created_at', 'updated_at']
-    filter_horizontal = []
     
     fieldsets = (
         ('Основное', {
