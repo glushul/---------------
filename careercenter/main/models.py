@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from simple_history.models import HistoricalRecords
 
 ROLE_CHOICES = (
     ('admin', 'Администратор'),
@@ -20,12 +21,32 @@ EXPERIENCE_CHOICES = (
     ('1-3', '1–3 года'),
     ('3+', 'Более 3 лет'),
 )
+SCHEDULE_CHOICES = (
+    ('office', 'Офис'),
+    ('remote', 'Удалёнка'),
+    ('hybrid', 'Гибрид'),
+    ('flexible', 'Гибкий график'),
+    ('by_agreement', 'По договорённости'),
+)
+
+RESPONSE_TYPE_CHOICES = (
+    ('internal', 'Внутренний отклик'),
+    ('email', 'Email'),
+    ('external_link', 'Внешняя ссылка'),
+)
+APPLICATION_STATUS_CHOICES = (
+    ('pending', 'На рассмотрении'),
+    ('reviewed', 'Рассмотрено'),
+    ('invited', 'Приглашён'),
+    ('rejected', 'Отклонено'),
+)
 
 class Company(models.Model):
     name = models.CharField("Название", max_length=255)
     description = models.TextField("Описание", blank=True)
     industry = models.CharField("Индустрия", max_length=100, blank=True)
     logo = models.ImageField("Логотип", upload_to='logos/', blank=True, null=True)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Компания"
@@ -56,8 +77,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        # ❗️Обратите внимание: принимаем username, но не используем
-        username = extra_fields.pop('username', None)  # игнорируем username
+        username = extra_fields.pop('username', None)
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('role', 'admin')
@@ -128,7 +148,12 @@ class Vacancy(models.Model):
         choices=EXPERIENCE_CHOICES,
         blank=True
     )
-    schedule = models.CharField("График работы", max_length=100, blank=True)
+    schedule = models.CharField(
+        "График",
+        max_length=20,
+        choices=SCHEDULE_CHOICES,
+        blank=True
+    )
 
     requirements = models.TextField("Требования", blank=True)
     responsibilities = models.TextField("Обязанности", blank=True)
@@ -136,6 +161,7 @@ class Vacancy(models.Model):
 
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
     updated_at = models.DateTimeField("Дата обновления", auto_now=True)
+    history = HistoricalRecords()
 
     class Meta:
         verbose_name = "Вакансия"
@@ -144,3 +170,32 @@ class Vacancy(models.Model):
 
     def __str__(self):
         return f"{self.title} в {self.company.name}"
+
+class Event(models.Model):
+    title = models.CharField(max_length=255, null=False, blank=False)
+    description = models.TextField(blank=True)
+    event_date = models.DateTimeField()
+    location = models.CharField(max_length=255, blank=True)
+    cover_image = models.ImageField(
+        "Обложка",
+        upload_to="events/",
+        blank=True
+    )
+
+    def __str__(self):
+        return self.title
+
+class Application(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name='applications')
+    resume_file_url = models.URLField(blank=True, help_text="Ссылка на PDF-резюме (если response_type = internal)")
+    status = models.CharField(max_length=20, choices=APPLICATION_STATUS_CHOICES, default='pending')
+    notes = models.TextField(blank=True)
+    applied_at = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
+
+    class Meta:
+        unique_together = ('user', 'vacancy')
+
+    def __str__(self):
+        return f"{self.user.full_name} → {self.vacancy.info.title if hasattr(self.vacancy, 'info') else 'Vacancy'}"

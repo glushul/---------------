@@ -33,7 +33,6 @@
               </div>
             </div>
 
-            <!-- Бейдж занятости -->
             {% if v.employment_type %}
               <span class="badge {% if v.employment_type == 'full' %}bg-success
                             {% elif v.employment_type == 'internship' %}bg-info
@@ -71,9 +70,10 @@
             <div>
               <div class="text-muted small">График</div>
               <div class="fw-medium">🕘 
-                  {% if vac.schedule == 'remote' %}Удалёнка
-                  {% elif vac.schedule == 'office' %}Офис
-                  {% elif vac.schedule == 'hybrid' %}Гибрид
+                  {% if v.schedule == 'remote' %}Удалёнка
+                  {% elif v.schedule == 'office' %}Офис
+                  {% elif v.schedule == 'hybrid' %}Гибрид
+                  {% elif v.schedule == 'flexible' %}Гибкий график
                   {% else %}По договорённости{% endif %}</div>
             </div>
           {% endif %}

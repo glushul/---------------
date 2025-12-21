@@ -46,11 +46,13 @@ INSTALLED_APPS = [
     "corsheaders",
     'widget_tweaks',
     'rest_framework',
-    'django_filters'
+    'django_filters',
+    'simple_history'
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",

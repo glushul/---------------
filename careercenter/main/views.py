@@ -3,6 +3,10 @@ from . import models, forms
 
 from django.http import HttpResponseBadRequest
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
+from django.db.models import Q
+from django.http import HttpResponse
+from .resources import VacancyResource
 
 def main(request):
     return redirect("vacancies")
@@ -40,25 +44,9 @@ def get_vacancies(request):
 
     data = []
     for v in vacancies:
-        data.append({
-            "id": v.id,
-            "title": v.title,
-            "description": v.description,
-            "company": {
-                "name": v.company.name,
-                "description": v.company.description,
-                "industry": v.company.description,
-                "logo": v.company.logo
-            },
-            "salary_min": v.salary_min,
-            "salary_max": v.salary_max,
-            "experience": v.experience,
-            "employment_type": v.employment_type,
-            "schedule": v.schedule,
-            "city": v.city,
-            "address": v.address,
-            "created_at": v.created_at.isoformat() if v.created_at else None,
-        })
+        vacancy_dict = model_to_dict(v)
+        vacancy_dict['company'] = model_to_dict(v.company)
+        data.append(vacancy_dict)
 
     fields = models.FieldOfStudy.objects.all() 
 
@@ -73,34 +61,9 @@ def get_vacancies(request):
 
 def get_vacancy(request, id):
     v = models.Vacancy.objects.filter(id=id).select_related('company').first()
-
-    if v is None:
-        return HttpResponseBadRequest("Invalid company ID")
-
-    context = {
-        "id": v.id,
-        "is_active": v.is_active,
-        "title": v.title,
-        "description": v.description,
-        "company": {
-            "name": v.company.name,
-            "description": v.company.description,
-            "industry": v.company.description,
-            "logo": v.company.logo
-        },
-        "salary_min": v.salary_min,
-        "salary_max": v.salary_max,
-        "city": v.city,
-        "address": v.address,
-        "employment_type": v.employment_type,
-        "schedule": v.schedule,
-        "requirements": v.requirements,
-        "responsibilities": v.responsibilities,
-        "conditions": v.conditions,
-        "created_at": v.created_at if v.created_at else None
-    }
-
-    return render(request, "vacancy.html", {"v": context})
+    vacancy_dict = model_to_dict(v)
+    vacancy_dict['company'] = model_to_dict(v.company)
+    return render(request, "vacancy.html", {"v": vacancy_dict})
 
 def edit_vacancy(request, id):
     if id == "new":
@@ -153,3 +116,13 @@ def edit_company(request, id):
         "form": company_form,
         "company": company
     })
+
+def export_vacancies_xlsx(request, company_id):
+    vacancies = models.Vacancy.objects.filter(
+        (Q(company_id=company_id) & Q(is_active=True)) 
+    )
+
+    dataset = VacancyResource().export(queryset=vacancies)
+    response = HttpResponse(dataset.xlsx, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="vacancies_{company_id}.xlsx"'
+    return response

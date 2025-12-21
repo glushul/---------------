@@ -13,5 +13,6 @@ urlpatterns = [
     path("vacancies/<int:id>", views.get_vacancy, name="get_vacancy"),
     path('vacancies/<str:id>/edit/', views.edit_vacancy, name="edit_vacancy"),
     path("companies", views.get_companies, name="companies"),
-    path("companies/<str:id>/edit/", views.edit_company, name="edit_company")
+    path("companies/<str:id>/edit/", views.edit_company, name="edit_company"),
+    path('export/vacancies/company/<int:company_id>/', views.export_vacancies_xlsx, name='export_vacancies')
 ]
