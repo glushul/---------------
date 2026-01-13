@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4" >
+  <div class="bg-light rounded-3 shadow-sm p-4 p-md-5" >
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="h4 fw-bold mb-0">Вакансии</h1>
+      <a href="{% url 'edit_vacancy' 'new'%}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить вакансию
+      </a>
+    </div>
+
+    <div class="d-flex flex-column flex-lg-row gap-2 w-100 align-items-center mb-3">
+      <form method="get" class="w-100">
+        <div class="d-flex flex-column flex-lg-row gap-2">
+          <input
+            type="text"
+            name="position"
+            class="form-control"
+            style="max-width: 360px;"
+            placeholder="Должность"
+            value="{{ request.GET.position|default:'' }}"
+          />
+
+          <select name="specialization" class="form-select" style="max-width: 360px;">
+            {% for field in fields %}
+              <option value="{{ field.id }}" {% if request.GET.specialization == field.id|stringformat:"s" %}selected{% endif %}>
+                {{ field.name }}
+              </option>
+            {% endfor %}
+            <option value="-1" {% if request.GET.specialization == "-1" or request.GET.specialization == null %}selected{% endif %}>Все специализации</option>
+          </select>
+
+          <select name="employment_type" class="form-select" style="max-width: 360px;">
+            {% for choice in employment_type_choices %}
+              <option value="{{ choice.0 }}" {% if request.GET.employment_type == choice.0|stringformat:"s" %}selected{% endif %}>
+                {{ choice.1 }}
+              </option>
+            {% endfor %}
+            <option value="-1" {% if request.GET.employment_type == "-1" or request.GET.employment_type == null %}selected{% endif %}>Любой тип трудоустройства</option>
+          </select>
+
+          <select name="experience" class="form-select" style="max-width: 360px;">
+            {% for choice in experience_choices %}
+              <option value="{{ choice.0 }}" {% if request.GET.experience == choice.0|stringformat:"s" %}selected{% endif %}>
+                {{ choice.1 }}
+              </option>
+            {% endfor %}
+            <option value="-1" {% if request.GET.experience == "-1" or request.GET.experience == null %}selected{% endif %}>Любой опыт работы</option>
+          </select>
+        </div>
+        <div class="mt-2">
+          <button type="submit" class="btn btn-primary">Применить фильтры</button>
+          <a href="/vacancies" class="btn btn-danger">Сбросить фильтры</a>
+        </div>
+      </form>
+    </div>
+
+    {% if vacancies %}
+      <div class="row g-4">
+        {% for vac in vacancies %}
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="border rounded-3 p-4 h-100 d-flex flex-column bg-white">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <h3 class="h6 fw-bold mb-0">{{ vac.title }}</h3>
+                {% if vac.employment_type %}
+                <span class="badge {% if vac.employment_type == 'full' %}bg-success
+                            {% elif vac.employment_type == 'internship' %}bg-info
+                            {% elif vac.employment_type == 'part' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                  {% if vac.employment_type == 'full' %}Полная
+                  {% elif vac.employment_type == 'internship' %}Стажировка
+                  {% elif vac.employment_type == 'part' %}Частичная
+                  {% else %}Проект{% endif %}
+                </span>
+                {% endif %}
+              </div>
+              <p class="text-muted mb-1">{{ vac.company.name }}</p>
+              <p class="mb-3">{{ vac.description|truncatechars:100 }}</p>
+              <div class="d-flex justify-content-between mb-3">
+                <span>{{ vac.city }}</span>
+                <span>
+                  {% if vac.schedule == 'remote' %}Удалёнка
+                  {% elif vac.schedule == 'office' %}Офис
+                  {% elif vac.schedule == 'hybrid' %}Гибрид
+                  {% else %}По договорённости{% endif %}
+                </span>
+              </div>
+              <div class="mt-auto">
+                <div class="fw-semibold mb-2">
+                  {% if vac.salary_min and vac.salary_max %}
+                    от {{ vac.salary_min|floatformat:0 }} до {{ vac.salary_max|floatformat:0 }} ₽
+                  {% elif vac.salary_min %}
+                    от {{ vac.salary_min|floatformat:0 }} ₽
+                  {% elif vac.salary_max %}
+                    до {{ vac.salary_max|floatformat:0 }} ₽
+                  {% else %}
+                    По договорённости
+                  {% endif %}
+                </div>
+                <a class="btn btn-primary w-100" href="/vacancies/{{ vac.id }}">Подробнее</a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="col-12 text-center py-5">
+        <p class="text-muted">Нет доступных вакансий</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
